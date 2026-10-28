@@ -1,0 +1,39 @@
+{
+    "fileName": "navx_frc.json",
+    "name": "KauaiLabs_navX_FRC",
+    "version": "2027.0.0-alpha-7.0",
+    "uuid": "cb311d09-36e9-4143-a032-55bb2b94443b",
+    "wpilibYear": "2027_alpha7",
+    "mavenUrls": [
+        "/Users/everett/.m2/repository",
+        "https://repo1.maven.org/maven2/"
+    ],
+    "jsonUrl": "https://www.kauailabs.com/dist/frc/2027_alpha7/navx_frc.json",
+    "javaDependencies": [
+        {
+            "groupId": "com.kauailabs.navx.frc",
+            "artifactId": "navx-java",
+            "version": "2027.0.0-alpha-7.0"
+        }
+    ],
+    "jniDependencies": [],
+    "cppDependencies": [
+        {
+            "groupId": "com.kauailabs.navx.frc",
+            "artifactId": "navx-cpp",
+            "version": "2027.0.0-alpha-7.0",
+            "headerClassifier": "headers",
+            "sourcesClassifier": "sources",
+            "sharedLibrary": false,
+            "libName": "navx_frc",
+            "skipInvalidPlatforms": true,
+            "binaryPlatforms": [
+                "windowsx86-64",
+                "linuxsystemcore",
+                "linuxarm64",
+                "linuxx86-64",
+                "osxuniversal"
+            ]
+        }
+    ]
+}
