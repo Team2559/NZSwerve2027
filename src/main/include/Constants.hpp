@@ -102,6 +102,7 @@ namespace DriveConstants {
     kMaxDriveSpeed / kDriveMetersPerSteerCircle * 360.0_deg;
 
   // CAN ID assignments.
+  constexpr wpi::CANPort kDriveCanPort = wpi::CANPort::CAN_S1;
   constexpr int kFrontLeftDriveMotorCanID = 1;
   constexpr int kFrontLeftSteerMotorCanID = 2;
   constexpr int kRearLeftDriveMotorCanID = 3;

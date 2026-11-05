@@ -13,7 +13,7 @@
 class RevSwerveModule : public SwerveModule {
 public:
   // Initializer
-  RevSwerveModule(int driveCanID, int steerCanID, wpi::units::angle::turn_t offset);
+  RevSwerveModule(wpi::CANPort canPort, int driveCanID, int steerCanID, wpi::units::angle::turn_t offset);
 
   // Test Methods
   void TestInit(std::string name) override;
@@ -33,12 +33,17 @@ public:
   void StopSteer() override;
 
   void SetDriveVelocity(wpi::units::velocity::meters_per_second_t velocity) override;
-  void SetDrivePercent(double percent) override;
+  void SetDriveThrottle(double throttle) override;
   void StopDrive() override;
+
+  void SetSteerVoltage(wpi::units::volt_t voltage) override;
+  void LogSteerInfo(wpi::sysid::SysIdRoutineLog::MotorLog log) override;
+  void SetDriveVoltage(wpi::units::volt_t voltage) override;
+  void LogDriveInfo(wpi::sysid::SysIdRoutineLog::MotorLog log) override;
 
   const wpi::math::SwerveModuleVelocity GetVelocity() override;
   const wpi::math::SwerveModulePosition GetPosition() override;
-  void SetDesiredVelocity(wpi::math::SwerveModuleVelocity &state) override;
+  void SetDesiredVelocity(wpi::math::SwerveModuleVelocity &velocity) override;
   void Stop() override;
 
 private:

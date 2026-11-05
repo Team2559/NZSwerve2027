@@ -41,7 +41,7 @@ public:
   // Drive functions; set, reset, and percent control; set causes a small
   // acceleration towards the setpoint, percent is useful for test profiling
   virtual void SetDriveVelocity(wpi::units::meters_per_second_t velocity) = 0;
-  virtual void SetDrivePercent(double percent) = 0;
+  virtual void SetDriveThrottle(double throttle) = 0;
   virtual void StopDrive() = 0;
 
   // SysID functions; gives low-level access to the motors

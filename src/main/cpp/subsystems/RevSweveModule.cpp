@@ -15,12 +15,12 @@ using namespace DriveConstants;
 using namespace rev::spark;
 
 static wpi::units::turn_t wrapOffset(wpi::units::turn_t value) {
-  return value - units::math::floor(value);
+  return value - wpi::units::math::floor(value);
 }
 
-RevSwerveModule::RevSwerveModule(int driveCanID, int steerCanID, units::angle::turn_t offset) :
-    driveMotor{driveCanID, SparkFlex::MotorType::kBrushless},
-    steerMotor{steerCanID, SparkFlex::MotorType::kBrushless},
+RevSwerveModule::RevSwerveModule(wpi::CANPort canPort, int driveCanID, int steerCanID, wpi::units::angle::turn_t offset) :
+    driveMotor{canPort, driveCanID, SparkFlex::MotorType::kBrushless},
+    steerMotor{canPort, steerCanID, SparkFlex::MotorType::kBrushless},
     driveEncoder{driveMotor.GetEncoder()},
     steerEncoder{steerMotor.GetAbsoluteEncoder()} {
   {
@@ -30,9 +30,9 @@ RevSwerveModule::RevSwerveModule(int driveCanID, int steerCanID, units::angle::t
       .SmartCurrentLimit(40.0)
       .Inverted(kDriveMotorInverted);
 
-    driveConfig.encoder
-      .PositionConversionFactor(kDriveDistancePerRotation.value())
-      .VelocityConversionFactor(kDriveDistancePerRotation.value() * (1.0_s / 1.0_min));
+    // driveConfig.encoder
+    //   .PositionConversionFactor(kDriveDistancePerRotation.value())
+    //   .VelocityConversionFactor(kDriveDistancePerRotation.value() * (1.0_s / 1.0_min));
 
     driveConfig.closedLoop
       .SetFeedbackSensor(FeedbackSensor::kPrimaryEncoder)
@@ -48,20 +48,17 @@ RevSwerveModule::RevSwerveModule(int driveCanID, int steerCanID, units::angle::t
       .SmartCurrentLimit(60.0)
       .Inverted(kSteerMotorInverted);
 
-    steerConfig.encoder
-      .PositionConversionFactor(1.00 / kSteerGearRatio)
-      .VelocityConversionFactor(1.0 / kSteerGearRatio * (1.0_s / 1.0_min));
+    // steerConfig.encoder
+    //   .PositionConversionFactor(1.00 / kSteerGearRatio)
+    //   .VelocityConversionFactor(1.0 / kSteerGearRatio * (1.0_s / 1.0_min));
 
     steerConfig.absoluteEncoder
       .ZeroOffset(wrapOffset(offset).value())
-      .Inverted(kSteerSensorInverted)
-      .PositionConversionFactor(1.0)
-      .VelocityConversionFactor(1.0_s / 1.0_min);
+      .Inverted(kSteerSensorInverted);
 
     steerConfig.closedLoop
       .SetFeedbackSensor(FeedbackSensor::kAbsoluteEncoder)
       .PositionWrappingEnabled(true)
-      .PositionWrappingInputRange(-0.5, 0.5)
       .Pid(SteerPID::kP, SteerPID::kI, SteerPID::kD);
 
     steerMotor.Configure(steerConfig, rev::ResetMode::kResetSafeParameters, rev::PersistMode::kNoPersistParameters);
@@ -69,27 +66,27 @@ RevSwerveModule::RevSwerveModule(int driveCanID, int steerCanID, units::angle::t
 }
 
 void RevSwerveModule::TestInit(std::string name) {
-  auto nt_instance = nt::NetworkTableInstance::GetDefault();
+  // auto nt_instance = nt::NetworkTableInstance::GetDefault();
 
-  auto driveSetupTable = nt_instance.GetTable("SmartDashboard/Drive Setup");
-  auto steerSetupTable = nt_instance.GetTable("SmartDashboard/Steer Setup");
+  // auto driveSetupTable = nt_instance.GetTable("SmartDashboard/Drive Setup");
+  // auto steerSetupTable = nt_instance.GetTable("SmartDashboard/Steer Setup");
 
-  nt_driveOutput = driveSetupTable->GetDoubleArrayTopic(name).Publish();
-  nt_steerOutput = steerSetupTable->GetDoubleArrayTopic(name).Publish();
+  // nt_driveOutput = driveSetupTable->GetDoubleArrayTopic(name).Publish();
+  // nt_steerOutput = steerSetupTable->GetDoubleArrayTopic(name).Publish();
 
-  nt_driveOutput.value().SetDefault(std::array{0.0, 0.0, 0.0});
-  nt_steerOutput.value().SetDefault(std::array{0.0, 0.0, 0.0});
+  // nt_driveOutput.value().SetDefault(std::array{0.0, 0.0, 0.0});
+  // nt_steerOutput.value().SetDefault(std::array{0.0, 0.0, 0.0});
 }
 
 void RevSwerveModule::TestExit() {
-  nt_driveOutput = {};
-  nt_steerOutput = {};
+  // nt_driveOutput = {};
+  // nt_steerOutput = {};
 }
 
 void RevSwerveModule::TestDebug() {
-  if (nt_driveOutput.has_value()) {
-    nt_driveOutput.value().Set(std::array{1.0, 2.0, 3.0});
-  }
+  // if (nt_driveOutput.has_value()) {
+  //   nt_driveOutput.value().Set(std::array{1.0, 2.0, 3.0});
+  // }
 }
 
 static inline void BuildPIDConfig(SparkFlexConfig &config, const PIDUpdate &update) {
@@ -112,16 +109,16 @@ static inline void BuildPIDConfig(SparkFlexConfig &config, const PIDUpdate &upda
   }
 
   switch (update.term) {
-    case PIDUpdate::PIDTerm::kP:
+    case PIDUpdate::PIDTerm::P:
       config.closedLoop.P(update.value, slot);
       break;
-    case PIDUpdate::PIDTerm::kI:
+    case PIDUpdate::PIDTerm::I:
       config.closedLoop.I(update.value, slot);
       break;
-    case PIDUpdate::PIDTerm::kD:
+    case PIDUpdate::PIDTerm::D:
       config.closedLoop.D(update.value, slot);
       break;
-    case PIDUpdate::PIDTerm::kFF:
+    case PIDUpdate::PIDTerm::FF:
       // TODO: Make for flexible?
       config.closedLoop.feedForward.kV(update.value, slot);
       break;
@@ -129,7 +126,7 @@ static inline void BuildPIDConfig(SparkFlexConfig &config, const PIDUpdate &upda
 }
 
 void RevSwerveModule::UpdateDrivePID(PIDUpdate &update) {
-  if (update.term == PIDUpdate::PIDTerm::kFF) {
+  if (update.term == PIDUpdate::PIDTerm::FF) {
     driveVff = update.value;
     return;
   }
@@ -149,7 +146,7 @@ bool RevSwerveModule::GetStatus() const {
   return true;
 }
 
-void RevSwerveModule::SetSteerOffset(units::angle::turn_t offset) {
+void RevSwerveModule::SetSteerOffset(wpi::units::angle::turn_t offset) {
   SparkFlexConfig steerConfig;
 
   steerConfig.absoluteEncoder.ZeroOffset(wrapOffset(offset).value());
@@ -157,60 +154,60 @@ void RevSwerveModule::SetSteerOffset(units::angle::turn_t offset) {
   steerMotor.Configure(steerConfig, rev::ResetMode::kNoResetSafeParameters, rev::PersistMode::kNoPersistParameters);
 }
 
-units::angle::turn_t RevSwerveModule::GetSteerPosition() {
-  return units::angle::turn_t{steerEncoder.GetPosition()};
+wpi::units::angle::turn_t RevSwerveModule::GetSteerPosition() {
+  return wpi::units::angle::turn_t{steerEncoder.GetPosition().Get()};
 }
 
-void RevSwerveModule::SetSteerPosition(units::angle::turn_t position) {
+void RevSwerveModule::SetSteerPosition(wpi::units::angle::turn_t position) {
   steerMotor.GetClosedLoopController().SetSetpoint(position.value(), SparkFlex::ControlType::kPosition);
 }
 
 void RevSwerveModule::StopSteer() {
-  steerMotor.Set(0.0);
+  steerMotor.StopMotor();
 }
 
-void RevSwerveModule::SetDriveVelocity(units::velocity::meters_per_second_t velocity) {
-  driveMotor.GetClosedLoopController().SetSetpoint(velocity.value(), SparkFlex::ControlType::kVelocity, {}, velocity.value() * driveVff);
+void RevSwerveModule::SetDriveVelocity(wpi::units::velocity::meters_per_second_t velocity) {
+  driveMotor.GetClosedLoopController().SetSetpoint((velocity / kDriveDistancePerRotation).convert<wpi::units::rpm>().value(), SparkFlex::ControlType::kVelocity, {}, velocity.value() * driveVff);
 
-  if (nt_driveOutput.has_value()) {
-    nt_driveOutput.value().Set(std::array{velocity.value(), driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
-  }
+  // if (nt_driveOutput.has_value()) {
+  //   nt_driveOutput.value().Set(std::array{velocity.value(), driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
+  // }
 }
 
-void RevSwerveModule::SetDrivePercent(double percent) {
-  driveMotor.Set(percent);
+void RevSwerveModule::SetDriveThrottle(double throttle) {
+  driveMotor.SetThrottle(throttle);
 
-  if (nt_driveOutput.has_value()) {
-    nt_driveOutput.value().Set(std::array{0.0, driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
-  }
+  // if (nt_driveOutput.has_value()) {
+  //   nt_driveOutput.value().Set(std::array{0.0, driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
+  // }
 }
 
 void RevSwerveModule::StopDrive() {
   driveMotor.StopMotor();
 
-  if (nt_driveOutput.has_value()) {
-    nt_driveOutput.value().Set(std::array{0.0, driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
-  }
+  // if (nt_driveOutput.has_value()) {
+  //   nt_driveOutput.value().Set(std::array{0.0, driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
+  // }
 }
 
-const frc::SwerveModuleState RevSwerveModule::GetState() {
-  return {units::velocity::meters_per_second_t{driveEncoder.GetVelocity()}, GetSteerPosition()};
+const wpi::math::SwerveModuleVelocity RevSwerveModule::GetVelocity() {
+  return {wpi::units::angular_velocity::revolutions_per_minute_t{driveEncoder.GetVelocity().Get()} * kDriveDistancePerRotation, GetSteerPosition()};
 }
 
-const frc::SwerveModulePosition RevSwerveModule::GetPosition() {
-  return {units::length::meter_t{driveEncoder.GetPosition()}, GetSteerPosition()};
+const wpi::math::SwerveModulePosition RevSwerveModule::GetPosition() {
+  return {wpi::units::angle::turn_t{driveEncoder.GetPosition().Get()} * kDriveDistancePerRotation, GetSteerPosition()};
 }
 
-void RevSwerveModule::SetDesiredState(frc::SwerveModuleState &state) {
-  auto currentAngle = frc::Rotation2d(GetSteerPosition());
+void RevSwerveModule::SetDesiredVelocity(wpi::math::SwerveModuleVelocity &velocity) {
+  auto currentAngle = wpi::math::Rotation2d(GetSteerPosition());
   // Allow modules to flip their "positive" direction when rapidly changing requested directions
-  state.Optimize(currentAngle);
+  velocity.Optimize(currentAngle);
 
   // Reduce speed of misoriented modules
-  state.speed *= (state.angle - currentAngle).Cos();
+  velocity.velocity *= (velocity.angle - currentAngle).Cos();
 
-  SetSteerPosition(state.angle.Radians());
-  SetDriveVelocity(state.speed);
+  SetSteerPosition(velocity.angle.Radians());
+  SetDriveVelocity(velocity.velocity);
 }
 
 void RevSwerveModule::Stop() {
