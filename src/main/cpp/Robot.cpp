@@ -4,83 +4,17 @@
 
 #include "Robot.hpp"
 
-#include "wpi/commands2/CommandScheduler.hpp"
+#include "opmode/DriveOnly.hpp"
 
-Robot::Robot() {}
+Robot::Robot() { AddOpModes(); }
 
-/**
- * This function is called every 20 ms, no matter the mode. Use
- * this for items like diagnostics that you want to run during disabled,
- * autonomous, teleoperated and utility.
- *
- * <p> This runs after the mode specific periodic functions, but before
- * LiveWindow and SmartDashboard integrated updating.
- */
-void Robot::RobotPeriodic() {
-  wpi::cmd::CommandScheduler::GetInstance().Run();
+void Robot::AddOpModes() {
+  AddOpMode<DriveOnly>(wpi::RobotMode::TELEOPERATED, "Drive Only",
+                       "Driving OpMode");
+
+  PublishOpModes();
 }
-
-/**
- * This function is called once each time the robot enters Disabled mode. You
- * can use it to reset any subsystem information you want to clear when the
- * robot is disabled.
- */
-void Robot::DisabledInit() {}
-
-void Robot::DisabledPeriodic() {}
-
-/**
- * This autonomous runs the autonomous command selected by your {@link
- * RobotContainer} class.
- */
-void Robot::AutonomousInit() {
-  autonomousCommand = container.GetAutonomousCommand();
-
-  if (autonomousCommand) {
-    wpi::cmd::CommandScheduler::GetInstance().Schedule(
-        autonomousCommand.value());
-  }
-}
-
-void Robot::AutonomousPeriodic() {}
-
-void Robot::AutonomousExit() {
-  // This makes sure that the autonomous stops running when
-  // autonomous mode ends. If you want the autonomous to
-  // continue until interrupted by another command, remove
-  // this line or comment it out.
-  if (autonomousCommand) {
-    autonomousCommand->Cancel();
-  }
-}
-
-/**
- * This function is called once each time the robot enters operator control.
- */
-void Robot::TeleopInit() {}
-
-/**
- * This function is called periodically during operator control.
- */
-void Robot::TeleopPeriodic() {}
-
-/**
- * This function is called periodically during utility mode.
- */
-void Robot::UtilityPeriodic() {}
-
-/**
- * This function is called once when the robot is first started up.
- */
-void Robot::SimulationInit() {}
-
-/**
- * This function is called periodically whilst in simulation.
- */
-void Robot::SimulationPeriodic() {}
 
 #ifndef RUNNING_WPILIB_TESTS
-int main() {
-  return wpi::StartRobot<Robot>();
-}
+int main() { return wpi::StartRobot<Robot>(); }
 #endif

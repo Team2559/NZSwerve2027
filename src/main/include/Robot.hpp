@@ -4,31 +4,20 @@
 
 #pragma once
 
-#include <optional>
+#include <wpi/framework/OpModeRobot.hpp>
 
-#include "RobotContainer.hpp"
-#include "wpi/commands2/CommandPtr.hpp"
-#include "wpi/framework/TimedRobot.hpp"
+#include "subsystems/DriveSubsystem.hpp"
 
-class Robot : public wpi::TimedRobot {
- public:
+class Robot : public wpi::OpModeRobot<Robot> {
+public:
   Robot();
-  void RobotPeriodic() override;
-  void DisabledInit() override;
-  void DisabledPeriodic() override;
-  void AutonomousInit() override;
-  void AutonomousPeriodic() override;
-  void AutonomousExit() override;
-  void TeleopInit() override;
-  void TeleopPeriodic() override;
-  void UtilityPeriodic() override;
-  void SimulationInit() override;
-  void SimulationPeriodic() override;
 
- private:
+  DriveSubsystem m_driveSubsystem;
+
+private:
   // Have it empty by default so that if testing teleop it
   // doesn't have undefined behavior and potentially crash.
-  std::optional<wpi::cmd::CommandPtr> autonomousCommand;
+  // std::optional<wpi::cmd::CommandPtr> autonomousCommand;
 
-  RobotContainer container;
+  void AddOpModes();
 };

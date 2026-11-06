@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wpi/hardware/bus/CANPort.hpp>
 #include <wpi/fields/Field.hpp>
 #include <wpi/fields/fields.hpp>
 #include <wpi/math/geometry/Transform3d.hpp>
