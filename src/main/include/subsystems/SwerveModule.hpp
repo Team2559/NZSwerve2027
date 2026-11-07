@@ -8,8 +8,8 @@
 #include <wpi/math/kinematics/SwerveModuleVelocity.hpp>
 #include <wpi/commands2/sysid/SysIdRoutine.hpp>
 #include <wpi/units/angle.hpp>
-#include <wpi/units/length.hpp>
 #include <wpi/units/velocity.hpp>
+#include <wpi/telemetry/TelemetryTable.hpp>
 
 #include "helpers/PIDTuner.hpp"
 
@@ -19,10 +19,9 @@ public:
   SwerveModule() = default;
   virtual ~SwerveModule() = default;
 
-  // Test Methods
-  virtual void TestInit(std::string name) = 0;
-  virtual void TestExit() = 0;
-  virtual void TestDebug() = 0;
+  // Utility Methods
+  virtual void UtilInit(wpi::telemetry::TelemetryTable &table) = 0;
+  virtual void UtilExit() = 0;
 
   // Live PID tuning
   virtual void UpdateDrivePID(PIDUpdate &update) = 0;
