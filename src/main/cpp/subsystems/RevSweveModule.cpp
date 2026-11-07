@@ -189,6 +189,28 @@ void RevSwerveModule::StopDrive() {
   }
 }
 
+void RevSwerveModule::SetSteerVoltage(wpi::units::volt_t voltage) {
+  steerMotor.SetVoltage(voltage);
+}
+
+void RevSwerveModule::LogSteerInfo(wpi::sysid::SysIdRoutineLog::MotorLog log) {
+  log.voltage(wpi::units::volt_t{steerMotor.GetBusVoltage().Get(12.0)} * steerMotor.GetAppliedOutput().Get(0.0));
+  log.current(wpi::units::ampere_t{steerMotor.GetOutputCurrent().Get(0.0)});
+  log.position(wpi::units::turn_t{steerEncoder.GetPosition().Get(0.0)});
+  log.velocity(wpi::units::revolutions_per_minute_t{steerEncoder.GetVelocity().Get(0.0)});
+}
+
+void RevSwerveModule::SetDriveVoltage(wpi::units::volt_t voltage) {
+  driveMotor.SetVoltage(voltage);
+}
+
+void RevSwerveModule::LogDriveInfo(wpi::sysid::SysIdRoutineLog::MotorLog log) {
+  log.voltage(wpi::units::volt_t{driveMotor.GetBusVoltage().Get(12.0)} * driveMotor.GetAppliedOutput().Get(0.0));
+  log.current(wpi::units::ampere_t{driveMotor.GetOutputCurrent().Get(0.0)});
+  log.position(wpi::units::turn_t{driveEncoder.GetPosition().Get(0.0)});
+  log.velocity(wpi::units::revolutions_per_minute_t{driveEncoder.GetVelocity().Get(0.0)});
+}
+
 const wpi::math::SwerveModuleVelocity RevSwerveModule::GetVelocity() {
   return {GetDriveVelocity(), GetSteerPosition()};
 }
