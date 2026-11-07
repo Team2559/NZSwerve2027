@@ -31,5 +31,5 @@ public:
   wpi::cmd::CommandPtr Dynamic(wpi::cmd::sysid::Direction direction);
 private:
   std::unique_ptr<wpi::cmd::sysid::SysIdRoutine> m_routine;
-  int m_id;
+  int64_t m_id;
 };

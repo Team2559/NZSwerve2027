@@ -8,6 +8,7 @@
 #include <wpi/telemetry/TelemetryTable.hpp>
 #include <wpi/tunables/ComplexTunable.hpp>
 #include <wpi/tunables/TunableTable.hpp>
+#include <wpi/units/base.hpp>
 
 /**
  * An update to a single PID term, of a specific slot
@@ -49,10 +50,10 @@ public:
       P{P}, I{I}, D{D}, FF{FF}, handler(handler) {};
   ~PIDTuner() = default;
 
-  void LogTo(wpi::telemetry::TelemetryTable& table) const override;
+  void LogTo(wpi::telemetry::TelemetryTable &table) const override;
   std::string_view GetTelemetryType() const override;
   std::string_view GetTunableType() const override;
-  void PublishTunable(wpi::tunables::TunableTable& table) override;
+  void PublishTunable(wpi::tunables::TunableTable &table) override;
 
   /**
    * The currently selected slot
@@ -75,3 +76,26 @@ private:
   // The handler to call with new PID updates
   std::function<void(PIDUpdate)> handler;
 };
+
+/** 
+ * Control-loop input and output, useful for graphing PID state
+ */
+template<class In, class Out>
+struct LoopState : public wpi::telemetry::TelemetryLoggable {
+  In setpoint;
+  In feedback;
+  Out output;
+
+  LoopState(In setpoint, In feedback, Out output) : setpoint{setpoint}, feedback{feedback}, output{output} {}
+
+  void LogTo(wpi::telemetry::TelemetryTable &table) const override {
+    table.Log("Setpoint", setpoint);
+    table.Log("Feedback", feedback);
+    table.Log("Output", output);
+  }
+
+  std::string_view GetTelemetryType() const override {
+    return "PIDTelemetry";
+  }
+};
+

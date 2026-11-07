@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <AHRS.h>
 #include <choreo/Choreo.hpp>
 #include <wpi/math/controller/PIDController.hpp>
 #include <wpi/math/estimator/SwerveDrivePoseEstimator3d.hpp>
@@ -15,11 +16,10 @@
 #include <wpi/commands2/CommandPtr.hpp>
 #include <wpi/commands2/SubsystemBase.hpp>
 #include <wpi/commands2/sysid/SysIdRoutine.hpp>
-#include <wpi/nt/DoubleTopic.hpp>
-#include <AHRS.h>
 #include <wpi/units/angular_velocity.hpp>
 #include <wpi/units/length.hpp>
 #include <wpi/units/velocity.hpp>
+#include <wpi/telemetry/TelemetryTable.hpp>
 
 #include <memory>
 
@@ -43,8 +43,8 @@ public:
    */
   void SimulationPeriodic() override;
 
-  void TestInit();
-  void TestExit();
+  void UtilInit();
+  void UtilExit();
 
   /**
    *  Reset forward for the driver to be the way the robot is currently facing
@@ -167,18 +167,6 @@ private:
   // SysId chooser for calibrating during test mode
   std::optional<SysIdSelectable> m_sysIdSelectable{};
 
-  // Dashboard logging entries
-  // -----------------------------------
-
-  wpi::nt::DoublePublisher nt_xPosition;
-  wpi::nt::DoublePublisher nt_xSetpoint;
-  wpi::nt::DoublePublisher nt_xOutput;
-
-  wpi::nt::DoublePublisher nt_yPosition;
-  wpi::nt::DoublePublisher nt_ySetpoint;
-  wpi::nt::DoublePublisher nt_yOutput;
-
-  wpi::nt::DoublePublisher nt_rPosition;
-  wpi::nt::DoublePublisher nt_rSetpoint;
-  wpi::nt::DoublePublisher nt_rOutput;
+  // Dashboard logging table
+  wpi::telemetry::TelemetryTable &table;
 };

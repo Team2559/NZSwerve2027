@@ -32,7 +32,7 @@ public:
     ((void)m_routines.emplace_back(std::move(routines.second)), ...);
 
     for (auto choice : ExpandRoutineChoices(routine_names)) {
-      m_sysIdChooser.AddOption(choice.first, choice.second);
+      m_sysIdSelectable.Add(choice.first, choice.second);
     }
   }
 

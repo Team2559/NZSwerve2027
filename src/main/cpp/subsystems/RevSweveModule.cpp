@@ -2,9 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-// #include <networktables/NetworkTableInstance.h>
 #include <rev/config/SparkFlexConfig.h>
-// #include <wpi/sendable/Sendable.h>
 
 #include <string>
 
@@ -65,28 +63,17 @@ RevSwerveModule::RevSwerveModule(wpi::CANPort canPort, int driveCanID, int steer
   }
 }
 
-void RevSwerveModule::TestInit(std::string name) {
-  // auto nt_instance = nt::NetworkTableInstance::GetDefault();
+void RevSwerveModule::UtilInit(wpi::telemetry::TelemetryTable &table) {
+  nt_driveController = table.GetTable("Drive Controller");
+  nt_steerController = table.GetTable("Steer Controller");
 
-  // auto driveSetupTable = nt_instance.GetTable("SmartDashboard/Drive Setup");
-  // auto steerSetupTable = nt_instance.GetTable("SmartDashboard/Steer Setup");
-
-  // nt_driveOutput = driveSetupTable->GetDoubleArrayTopic(name).Publish();
-  // nt_steerOutput = steerSetupTable->GetDoubleArrayTopic(name).Publish();
-
-  // nt_driveOutput.value().SetDefault(std::array{0.0, 0.0, 0.0});
-  // nt_steerOutput.value().SetDefault(std::array{0.0, 0.0, 0.0});
+  nt_driveController.value().get().Log("", LoopState{0.0_mps, 0.0_mps, 0.0});
+  nt_steerController.value().get().Log("", LoopState{0.0_tr, 0.0_tr, 0.0});
 }
 
-void RevSwerveModule::TestExit() {
-  // nt_driveOutput = {};
-  // nt_steerOutput = {};
-}
-
-void RevSwerveModule::TestDebug() {
-  // if (nt_driveOutput.has_value()) {
-  //   nt_driveOutput.value().Set(std::array{1.0, 2.0, 3.0});
-  // }
+void RevSwerveModule::UtilExit() {
+  nt_driveController = {};
+  nt_steerController = {};
 }
 
 static inline void BuildPIDConfig(SparkFlexConfig &config, const PIDUpdate &update) {
@@ -160,38 +147,50 @@ wpi::units::angle::turn_t RevSwerveModule::GetSteerPosition() {
 
 void RevSwerveModule::SetSteerPosition(wpi::units::angle::turn_t position) {
   steerMotor.GetClosedLoopController().SetSetpoint(position.value(), SparkFlex::ControlType::kPosition);
+
+  if (nt_steerController.has_value()) {
+    nt_steerController.value().get().Log("", LoopState{position, GetSteerPosition(), steerMotor.GetAppliedOutput().Get()});
+  }
 }
 
 void RevSwerveModule::StopSteer() {
   steerMotor.StopMotor();
+
+  if (nt_steerController.has_value()) {
+    nt_steerController.value().get().Log("", LoopState{0_tr, GetSteerPosition(), steerMotor.GetAppliedOutput().Get()});
+  }
+}
+
+wpi::units::velocity::meters_per_second_t RevSwerveModule::GetDriveVelocity() {
+  return wpi::units::angular_velocity::revolutions_per_minute_t{driveEncoder.GetVelocity().Get()} * kDriveDistancePerRotation;
 }
 
 void RevSwerveModule::SetDriveVelocity(wpi::units::velocity::meters_per_second_t velocity) {
   driveMotor.GetClosedLoopController().SetSetpoint((velocity / kDriveDistancePerRotation).convert<wpi::units::rpm>().value(), SparkFlex::ControlType::kVelocity, {}, velocity.value() * driveVff);
 
-  // if (nt_driveOutput.has_value()) {
-  //   nt_driveOutput.value().Set(std::array{velocity.value(), driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
-  // }
+  if (nt_driveController.has_value()) {
+    nt_driveController.value().get().Log("", LoopState{velocity, GetDriveVelocity(), driveMotor.GetAppliedOutput().Get()});
+  }
 }
 
 void RevSwerveModule::SetDriveThrottle(double throttle) {
   driveMotor.SetThrottle(throttle);
 
-  // if (nt_driveOutput.has_value()) {
-  //   nt_driveOutput.value().Set(std::array{0.0, driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
-  // }
+  if (nt_driveController.has_value()) {
+    nt_driveController.value().get().Log("", LoopState{0.0_mps, GetDriveVelocity(), driveMotor.GetAppliedOutput().Get()});
+  }
 }
 
 void RevSwerveModule::StopDrive() {
   driveMotor.StopMotor();
 
-  // if (nt_driveOutput.has_value()) {
-  //   nt_driveOutput.value().Set(std::array{0.0, driveEncoder.GetVelocity(), driveMotor.GetAppliedOutput()});
-  // }
+  if (nt_driveController.has_value()) {
+    nt_driveController.value().get().Log("", LoopState{0.0_mps, GetDriveVelocity(), driveMotor.GetAppliedOutput().Get()});
+  }
 }
 
 const wpi::math::SwerveModuleVelocity RevSwerveModule::GetVelocity() {
-  return {wpi::units::angular_velocity::revolutions_per_minute_t{driveEncoder.GetVelocity().Get()} * kDriveDistancePerRotation, GetSteerPosition()};
+  return {GetDriveVelocity(), GetSteerPosition()};
 }
 
 const wpi::math::SwerveModulePosition RevSwerveModule::GetPosition() {

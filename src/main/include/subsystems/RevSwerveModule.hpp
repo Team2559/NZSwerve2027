@@ -15,10 +15,9 @@ public:
   // Initializer
   RevSwerveModule(wpi::CANPort canPort, int driveCanID, int steerCanID, wpi::units::angle::turn_t offset);
 
-  // Test Methods
-  void TestInit(std::string name) override;
-  void TestExit() override;
-  void TestDebug() override;
+  // Utility Methods
+  void UtilInit(wpi::telemetry::TelemetryTable &table) override;
+  void UtilExit() override;
 
   // Live PID tuning
   void UpdateDrivePID(PIDUpdate &update) override;
@@ -32,6 +31,7 @@ public:
   void SetSteerPosition(wpi::units::angle::turn_t position) override;
   void StopSteer() override;
 
+  wpi::units::velocity::meters_per_second_t GetDriveVelocity();
   void SetDriveVelocity(wpi::units::velocity::meters_per_second_t velocity) override;
   void SetDriveThrottle(double throttle) override;
   void StopDrive() override;
@@ -55,6 +55,6 @@ private:
   rev::spark::SparkRelativeEncoder driveEncoder;
   rev::spark::SparkAbsoluteEncoder steerEncoder;
 
-  // std::optional<nt::DoubleArrayPublisher> nt_driveOutput = {};
-  // std::optional<nt::DoubleArrayPublisher> nt_steerOutput = {};
+  std::optional<std::reference_wrapper<wpi::telemetry::TelemetryTable>> nt_driveController = {};
+  std::optional<std::reference_wrapper<wpi::telemetry::TelemetryTable>> nt_steerController = {};
 };

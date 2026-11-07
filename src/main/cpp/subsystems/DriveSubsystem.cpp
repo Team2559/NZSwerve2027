@@ -9,6 +9,7 @@
 #include <wpi/commands2/RunCommand.hpp>
 #include <wpi/commands2/button/RobotModeTriggers.hpp>
 #include <wpi/telemetry/Telemetry.hpp>
+#include <wpi/tunables/Tunables.hpp>
 
 #include <memory>
 #include <string>
@@ -68,53 +69,29 @@ DriveSubsystem::DriveSubsystem() :
     },
     m_xController{TranslationPID::kP, TranslationPID::kI, TranslationPID::kD},
     m_yController{TranslationPID::kP, TranslationPID::kI, TranslationPID::kD},
-    m_rController{OrientationPID::kP, OrientationPID::kI, OrientationPID::kD} {
+    m_rController{OrientationPID::kP, OrientationPID::kI, OrientationPID::kD},
+    table{wpi::telemetry::GetTable("Drive")} {
   const wpi::math::Pose3d initialPose = m_poseEstimator.GetEstimatedPosition();
 
-  // auto nt_instance = nt::NetworkTableInstance::GetDefault();
-  // auto table = nt_instance.GetTable("SmartDashboard/Drive");
+  auto &xTable = table.GetTable("X");
+  xTable.Log("Position", initialPose.X());
+  xTable.Log("Setpoint", 0.0_m);
+  xTable.Log("Output", 0.0);
 
-  // auto xTable = table->GetSubTable("X");
-  // nt_xPosition = xTable->GetDoubleTopic("Position").Publish();
-  // nt_xSetpoint = xTable->GetDoubleTopic("Setpoint").Publish();
-  // nt_xOutput = xTable->GetDoubleTopic("Output").Publish();
+  auto &yTable = table.GetTable("Y");
+  yTable.Log("Position", initialPose.Y());
+  yTable.Log("Setpoint", 0.0_m);
+  yTable.Log("Output", 0.0);
 
-  // nt_xPosition.SetDefault(initialPose.X().value());
-  // nt_xSetpoint.SetDefault(0.0);
-  // nt_xOutput.SetDefault(0.0);
-
-  // auto yTable = table->GetSubTable("Y");
-  // nt_yPosition = yTable->GetDoubleTopic("Position").Publish();
-  // nt_ySetpoint = yTable->GetDoubleTopic("Setpoint").Publish();
-  // nt_yOutput = yTable->GetDoubleTopic("Output").Publish();
-
-  // nt_yPosition.SetDefault(initialPose.Y().value());
-  // nt_ySetpoint.SetDefault(0.0);
-  // nt_yOutput.SetDefault(0.0);
-
-  // auto rTable = table->GetSubTable("R");
-  // nt_rPosition = rTable->GetDoubleTopic("Position").Publish();
-  // nt_rSetpoint = rTable->GetDoubleTopic("Setpoint").Publish();
-  // nt_rOutput = rTable->GetDoubleTopic("Output").Publish();
-
-  // nt_rPosition.SetDefault(initialPose.Rotation().ToRotation2d().Radians().value());
-  // nt_rSetpoint.SetDefault(0.0);
-  // nt_rOutput.SetDefault(0.0);
+  auto &rTable = table.GetTable("R");
+  rTable.Log("Position", initialPose.Rotation().Z().convert<wpi::units::deg>());
+  rTable.Log("Setpoint", 0.0_deg);
+  rTable.Log("Output", 0.0);
 
   // Bind test init and test exit to mode transition
   wpi::cmd::RobotModeTriggers::Utility()
-    .OnTrue(
-      wpi::cmd::InstantCommand([this]() { TestInit(); })
-        .AndThen(
-          wpi::cmd::RunCommand([this]() {
-            frontLeftModule->TestDebug();
-            frontRightModule->TestDebug();
-            rearLeftModule->TestDebug();
-            rearRightModule->TestDebug();
-          }).WithTimeout(1.0_s)
-        )
-    )
-    .OnFalse(wpi::cmd::InstantCommand([this]() { TestExit(); }).ToPtr());
+    .OnTrue(wpi::cmd::InstantCommand([this]() { UtilInit(); }).ToPtr())
+    .OnFalse(wpi::cmd::InstantCommand([this]() { UtilExit(); }).ToPtr());
 
   wpi::telemetry::Log("Field", field);
 }
@@ -124,48 +101,49 @@ void DriveSubsystem::Periodic() {
 
   wpi::math::Pose3d pose = m_poseEstimator.Update(heading, GetModulePositions());
 
-  nt_xPosition.Set(pose.X().value());
-  nt_yPosition.Set(pose.Y().value());
-  nt_rPosition.Set(pose.Rotation().ToRotation2d().Radians().value());
+  table.Log("X/Position", pose.X());
+  table.Log("Y/Position", pose.Y());
+  table.Log("R/Position", pose.Rotation().Z().convert<wpi::units::deg>());
 
-  // wpi::SmartDashboard::PutNumber("Front left drive", frontLeftModule->GetPosition().distance.value());
-  // wpi::SmartDashboard::PutNumber("Front right drive", frontRightModule->GetPosition().distance.value());
-  // wpi::SmartDashboard::PutNumber("Rear left drive", rearLeftModule->GetPosition().distance.value());
-  // wpi::SmartDashboard::PutNumber("Rear right drive", rearRightModule->GetPosition().distance.value());
+  table.Log("FrontLeft/Drive", frontLeftModule->GetPosition().distance);
+  table.Log("FrontRight/Drive", frontRightModule->GetPosition().distance);
+  table.Log("RearLeft/Drive", rearLeftModule->GetPosition().distance);
+  table.Log("RearRight/Drive", rearRightModule->GetPosition().distance);
 
-  // wpi::SmartDashboard::PutNumber("Front left steer", frontLeftModule->GetSteerPosition().convert<wpi::units::deg>().value());
-  // wpi::SmartDashboard::PutNumber("Front right steer", frontRightModule->GetSteerPosition().convert<wpi::units::deg>().value());
-  // wpi::SmartDashboard::PutNumber("Rear left steer", rearLeftModule->GetSteerPosition().convert<wpi::units::deg>().value());
-  // wpi::SmartDashboard::PutNumber("Rear right steer", rearRightModule->GetSteerPosition().convert<wpi::units::deg>().value());
+  table.Log("FrontLeft/Steer", frontLeftModule->GetSteerPosition().convert<wpi::units::deg>());
+  table.Log("FrontRight/Steer", frontRightModule->GetSteerPosition().convert<wpi::units::deg>());
+  table.Log("RearLeft/Steer", rearLeftModule->GetSteerPosition().convert<wpi::units::deg>());
+  table.Log("RearRight/Steer", rearRightModule->GetSteerPosition().convert<wpi::units::deg>());
 
   field.SetRobotPose(pose.ToPose2d());
+  wpi::telemetry::Log("Field", field);
 }
 
 void DriveSubsystem::SimulationPeriodic() {
 }
 
-void DriveSubsystem::TestInit() {
-  // wpi::SmartDashboard::PutData("Drive Setup/PID", &m_driveTuner);
-  // wpi::SmartDashboard::PutData("Steer Setup/PID", &m_steerTuner);
+void DriveSubsystem::UtilInit() {
+  wpi::tunables::Publish("Drive/Drive PID", m_driveTuner);
+  wpi::tunables::Publish("Drive/Steer PID", m_steerTuner);
 
   // driveSetupTab.Add("Legend", "(Blue) setpoint, (Red) measured, (Green) output");
   // steerSetupTab.Add("Legend", "(Blue) setpoint, (Red) measured, (Green) output");
 
-  frontLeftModule->TestInit("Front left");
-  frontRightModule->TestInit("Front right");
-  rearLeftModule->TestInit("Rear left");
-  rearRightModule->TestInit("Rear right");
+  frontLeftModule->UtilInit(table.GetTable("Front left"));
+  frontRightModule->UtilInit(table.GetTable("Front right"));
+  rearLeftModule->UtilInit(table.GetTable("Rear left"));
+  rearRightModule->UtilInit(table.GetTable("Rear right"));
 
   m_sysIdSelectable = SysIdSelectable{std::pair{std::string{"Steer"}, SteerSysId()}, std::pair{std::string{"Drive"}, DriveSysId()}};
 
-  // wpi::SmartDashboard::PutData("Drive Setup/SysId", &m_sysIdChooser.value());
+  wpi::tunables::Publish("Drive/SysId", m_sysIdSelectable.value());
 }
 
-void DriveSubsystem::TestExit() {
-  frontLeftModule->TestExit();
-  frontRightModule->TestExit();
-  rearLeftModule->TestExit();
-  rearRightModule->TestExit();
+void DriveSubsystem::UtilExit() {
+  frontLeftModule->UtilExit();
+  frontRightModule->UtilExit();
+  rearLeftModule->UtilExit();
+  rearRightModule->UtilExit();
 }
 
 void DriveSubsystem::ResetFieldOrientation(bool inverted) {
@@ -178,9 +156,10 @@ void DriveSubsystem::Drive(wpi::units::meters_per_second_t xSpeed, wpi::units::m
     xSpeed, ySpeed, rot
   };
 
-  // nt_xOutput.Set(xSpeed.value());
-  // nt_yOutput.Set(ySpeed.value());
-  // nt_rOutput.Set(rot.value());
+
+  table.Log("X/Output", xSpeed);
+  table.Log("Y/Output", ySpeed);
+  table.Log("R/Output", rot.convert<wpi::units::deg_per_s>());
 
   SetModuleVelocities(kDriveKinematics.ToSwerveModuleVelocities(
     fieldRelative ? velocity.ToFieldRelative(heading)
@@ -202,9 +181,9 @@ void DriveSubsystem::FollowTrajectory(const choreo::SwerveSample &sample) {
     m_rController.Calculate(robot_heading.value(), target_heading.value())
   };
 
-  nt_xSetpoint.Set(sample.x.value());
-  nt_ySetpoint.Set(sample.y.value());
-  nt_rSetpoint.Set(sample.heading.value());
+  table.Log("X/Setpoint", sample.x);
+  table.Log("Y/Setpoint", sample.y);
+  table.Log("R/Setpoint", sample.heading.convert<wpi::units::deg>());
 
   Drive(
     sample.vx + xFeedback,
@@ -221,9 +200,9 @@ void DriveSubsystem::SteerTo(wpi::units::meters_per_second_t xSpeed, wpi::units:
 }
 
 void DriveSubsystem::Stop() {
-  nt_xOutput.Set(0.0);
-  nt_yOutput.Set(0.0);
-  nt_rOutput.Set(0.0);
+  table.Log("X/Output", 0);
+  table.Log("Y/Output", 0);
+  table.Log("R/Output", 0);
 
   frontLeftModule->Stop();
   frontRightModule->Stop();
