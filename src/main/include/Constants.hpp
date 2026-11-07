@@ -6,6 +6,7 @@
 
 #include <wpi/fields/Field.hpp>
 #include <wpi/fields/fields.hpp>
+#include <wpi/hardware/bus/CANPort.hpp>
 #include <wpi/math/geometry/Transform3d.hpp>
 #include <wpi/math/system/DCMotor.hpp>
 #include <wpi/units/angle.hpp>
@@ -27,7 +28,7 @@
 
 namespace OperatorConstants {
 
-  inline constexpr int kDriverControllerPort = 0;
+  inline constexpr int DRIVER_CONTROLLER_PORT = 0;
 
 } // namespace OperatorConstants
 
