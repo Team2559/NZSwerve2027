@@ -8,6 +8,8 @@
 
 Robot::Robot() { AddOpModes(); }
 
+void Robot::RobotPeriodic() { wpi::cmd::CommandScheduler::GetInstance().Run(); }
+
 void Robot::AddOpModes() {
   AddOpMode<DriveOnly>(wpi::RobotMode::TELEOPERATED, "Drive Only",
                        "Driving OpMode");

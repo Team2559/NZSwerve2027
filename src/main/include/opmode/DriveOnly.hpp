@@ -10,7 +10,8 @@ class DriveOnly final : public wpi::OpMode {
 public:
   explicit DriveOnly(Robot &robot);
 
-  void Periodic() override;
+  void Start() override;
+  void End() override;
 
 private:
   Robot &robot;
@@ -23,7 +24,8 @@ private:
   bool m_triggerSpeedEnabled = false;
   bool m_isRedAlliance = false;
 
-  void ConfigureDriverBindings();
+  void SetupDriverBindings();
+  void TeardownDriverBindings();
 
   /// Process controller inputs into percentage robot velocities; returns an x,
   /// y, ω, fieldOriented tuple

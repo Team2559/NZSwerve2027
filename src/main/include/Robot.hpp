@@ -12,6 +12,8 @@ class Robot : public wpi::OpModeRobot<Robot> {
 public:
   Robot();
 
+  void RobotPeriodic() override;
+
   DriveSubsystem m_driveSubsystem;
 
 private:
