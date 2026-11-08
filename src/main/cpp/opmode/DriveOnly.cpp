@@ -9,11 +9,12 @@
 DriveOnly::DriveOnly(Robot &robot) : robot{robot} {
   wpi::net::WebServer::GetInstance().Start(
       5800, wpi::filesystem::GetDeployDirectory());
-
-  ConfigureDriverBindings();
 }
 
-void DriveOnly::ConfigureDriverBindings() {
+void DriveOnly::Start() { SetupDriverBindings(); }
+void DriveOnly::End() { TeardownDriverBindings(); }
+
+void DriveOnly::SetupDriverBindings() {
   robot.m_driveSubsystem.SetDefaultCommand(
       wpi::cmd::RunCommand(
           [this]() {
@@ -38,7 +39,7 @@ void DriveOnly::ConfigureDriverBindings() {
           .WithName("Reset Field Orientation"));
 }
 
-void DriveOnly::Periodic() { wpi::cmd::CommandScheduler::GetInstance().Run(); }
+void DriveOnly::TeardownDriverBindings() {}
 
 std::tuple<double, double, double, bool> DriveOnly::GetDriveTeleopControls() {
   /*
