@@ -44,8 +44,8 @@ namespace DriveConstants {
   inline constexpr wpi::units::degree_t kRearLeftSteerOffset = 0.62443335_tr;
   inline constexpr wpi::units::degree_t kRearRightSteerOffset = 0.3770286_tr;
 
-  constexpr wpi::math::DCMotor driveMotorPlant = wpi::math::DCMotor::KrakenX60();
-  constexpr wpi::math::DCMotor steerMotorPlant = wpi::math::DCMotor::NEO();
+  constexpr wpi::math::DCMotor driveMotorPlant = wpi::math::DCMotor::NeoVortex();
+  constexpr wpi::math::DCMotor steerMotorPlant = wpi::math::DCMotor::NeoVortex();
 
   // SDS Mk3 Standard (or Fast) Gear Ratio: 8.16:1 (or 6.86:1);
   // Nominal Wheel Diameter (4"): =0.1016m;
