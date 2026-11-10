@@ -167,6 +167,9 @@ private:
   // SysId chooser for calibrating during test mode
   std::optional<SysIdSelectable> m_sysIdSelectable{};
 
+  // Desired velocity for simulation
+  wpi::math::ChassisVelocities m_velocity;
+
   // Dashboard logging table
   wpi::telemetry::TelemetryTable &table;
 };

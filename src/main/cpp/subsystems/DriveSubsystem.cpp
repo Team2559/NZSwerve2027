@@ -120,6 +120,17 @@ void DriveSubsystem::Periodic() {
 }
 
 void DriveSubsystem::SimulationPeriodic() {
+  wpi::math::ChassisVelocities fieldVelocity = m_velocity.ToRobotRelative(GetPose().ToPose2d().Rotation());
+
+  constexpr wpi::units::millisecond_t loopRate = 20_ms;
+  m_poseEstimator.ResetPose(
+    m_poseEstimator.GetEstimatedPosition() +
+    wpi::math::Transform3d(wpi::math::Transform2d(
+      fieldVelocity.vx * loopRate,
+      fieldVelocity.vy * loopRate,
+      fieldVelocity.omega * loopRate
+    ))
+  );
 }
 
 void DriveSubsystem::UtilInit() {
@@ -152,7 +163,7 @@ void DriveSubsystem::ResetFieldOrientation(bool inverted) {
 
 void DriveSubsystem::Drive(wpi::units::meters_per_second_t xSpeed, wpi::units::meters_per_second_t ySpeed, wpi::units::radians_per_second_t rot, bool fieldRelative, wpi::units::meter_t x_center, wpi::units::meter_t y_center) {
   wpi::math::Rotation2d heading = GetPose().ToPose2d().Rotation();
-  wpi::math::ChassisVelocities velocity {
+  m_velocity = {
     xSpeed, ySpeed, rot
   };
 
@@ -161,11 +172,11 @@ void DriveSubsystem::Drive(wpi::units::meters_per_second_t xSpeed, wpi::units::m
   table.Log("Y/Output", ySpeed);
   table.Log("R/Output", rot.convert<wpi::units::deg_per_s>());
 
-  SetModuleVelocities(kDriveKinematics.ToSwerveModuleVelocities(
-    fieldRelative ? velocity.ToFieldRelative(heading)
-                  : velocity,
-    {x_center, y_center}
-  ));
+  if (fieldRelative) {
+    m_velocity = m_velocity.ToFieldRelative(heading);
+  }
+
+  SetModuleVelocities(kDriveKinematics.ToSwerveModuleVelocities(m_velocity, {x_center, y_center}));
 }
 
 void DriveSubsystem::FollowTrajectory(const choreo::SwerveSample &sample) {
