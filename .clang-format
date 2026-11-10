@@ -1,0 +1,34 @@
+---
+BasedOnStyle: LLVM
+AlignAfterOpenBracket: BlockIndent
+AllowShortFunctionsOnASingleLine: Inline
+BreakConstructorInitializers: AfterColon
+BinPackArguments: false
+BinPackParameters: false
+ColumnLimit: 0
+# ConstructorInitializerIndentWidth: 2  # This only works if BraceWrapping has a separate option for functions with initializers
+ContinuationIndentWidth: 2
+FixNamespaceComments: false
+IncludeBlocks:   Regroup
+IncludeCategories:
+  - Regex:           '^<ext/.*\.h>'
+    Priority:        2
+    SortPriority:    0
+    CaseSensitive:   false
+  - Regex:           '^<.*\.h(pp)?>'
+    Priority:        1
+    SortPriority:    0
+    CaseSensitive:   false
+  - Regex:           '^<.*'
+    Priority:        2
+    SortPriority:    0
+    CaseSensitive:   false
+  - Regex:           '.*'
+    Priority:        3
+    SortPriority:    0
+    CaseSensitive:   false
+# IndentAccessModifiers: false
+IndentCaseLabels: true
+NamespaceIndentation: All
+PackConstructorInitializers: NextLine
+...
