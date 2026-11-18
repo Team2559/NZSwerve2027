@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <wpi/hardware/bus/CANPort.hpp>
 #include <wpi/fields/Field.hpp>
 #include <wpi/fields/fields.hpp>
 #include <wpi/hardware/bus/CANPort.hpp>
@@ -40,10 +39,10 @@ namespace DriveConstants {
   inline constexpr wpi::units::meter_t kWheelbaseLength = 24.75_in;
 
   // Zero positions for the steer of the swerve modules
-  inline constexpr wpi::units::degree_t kFrontLeftSteerOffset = 0.99025878_tr;
-  inline constexpr wpi::units::degree_t kFrontRightSteerOffset = 0.018524759_tr;
-  inline constexpr wpi::units::degree_t kRearLeftSteerOffset = 0.62443335_tr;
-  inline constexpr wpi::units::degree_t kRearRightSteerOffset = 0.3770286_tr;
+  inline constexpr wpi::units::degree_t kFrontLeftSteerOffset = 0.216549_tr;
+  inline constexpr wpi::units::degree_t kFrontRightSteerOffset = 0.723868_tr;
+  inline constexpr wpi::units::degree_t kRearLeftSteerOffset = 0.933635_tr;
+  inline constexpr wpi::units::degree_t kRearRightSteerOffset = 0.152113_tr;
 
   constexpr wpi::math::DCMotor driveMotorPlant = wpi::math::DCMotor::NeoVortex();
   constexpr wpi::math::DCMotor steerMotorPlant = wpi::math::DCMotor::NeoVortex();
@@ -68,8 +67,9 @@ namespace DriveConstants {
   // This should be empirically determined!  This is just an initial guess.
   // This is used for both distance and velocity control. If this is off, it
   // will throw off kMaxDriveSpeed and kMaxTurnRate, as well as drive values.
-  inline constexpr wpi::units::unit_t<wpi::units::compound_unit<wpi::units::meter, wpi::units::inverse<wpi::units::turn>>> kDriveDistancePerRotation =
-    4.00_in * wpi::units::constants::pi / wpi::units::turn_t{kDriveGearRatio};
+  inline constexpr wpi::units::unit_t<
+      wpi::units::compound_unit<wpi::units::meter, wpi::units::inverse<wpi::units::turn>>>
+      kDriveDistancePerRotation = 4.00_in * wpi::units::constants::pi / wpi::units::turn_t{kDriveGearRatio};
 
   // SDS Mk3 Standard (or Fast) Max Free Speed: 12.1 (or 14.4) feet/second;
   // Review your motor and swerve module configuration for nominal free speed
@@ -85,7 +85,8 @@ namespace DriveConstants {
   // may need to be empirically adjusted, but check kDriveMetersPerRotation
   // before making any adjustment here.
   const wpi::units::meter_t kDriveMetersPerSteerCircle =
-    M_PI * wpi::units::math::sqrt(wpi::units::math::pow<2>(kWheelbaseLength) + wpi::units::math::pow<2>(kWheelbaseWidth));
+      M_PI *
+      wpi::units::math::sqrt(wpi::units::math::pow<2>(kWheelbaseLength) + wpi::units::math::pow<2>(kWheelbaseWidth));
 
   // This is the maximum rotational speed -- not of a swerve module, but of
   // the entire robot.  This is a function of the maximum drive speed and the
@@ -100,8 +101,7 @@ namespace DriveConstants {
   // So the maximum rotational velocity (spinning in place) is kMaxDriveSpeed
   // / kDriveMetersPerSteerCircle * 360 degrees.  This should not need to
   // be empirically adjusted (but check).
-  const wpi::units::degrees_per_second_t kMaxTurnRate =
-    kMaxDriveSpeed / kDriveMetersPerSteerCircle * 360.0_deg;
+  const wpi::units::degrees_per_second_t kMaxTurnRate = kMaxDriveSpeed / kDriveMetersPerSteerCircle * 360.0_deg;
 
   // CAN ID assignments.
   constexpr wpi::CANPort kDriveCanPort = wpi::CANPort::CAN_S1;
@@ -154,11 +154,10 @@ namespace DriveConstants {
 namespace VisionConstants {
   // Camera network name
   constexpr char kName[] = "OV9281";
-  // AprilTag field data; FMA events should all use the welded field, but off-season events may use the AndyMark field instead.
+  // AprilTag field data; FMA events should all use the welded field, but off-season events may use the AndyMark field
+  // instead.
   const wpi::fields::Field kFieldLayout = wpi::fields::GetField(wpi::fields::FieldId::FRC_2026_REBUILT_WELDED);
   // Camera focal point position and orientation relative to the robot origin
-  constexpr wpi::math::Transform3d kRobotToCam = wpi::math::Transform3d(
-    wpi::math::Translation3d(0.5_m, 0.0_m, 0.5_m),
-    wpi::math::Rotation3d(0_rad, 0_rad, 0_rad)
-  );
+  constexpr wpi::math::Transform3d kRobotToCam =
+      wpi::math::Transform3d(wpi::math::Translation3d(0.5_m, 0.0_m, 0.5_m), wpi::math::Rotation3d(0_rad, 0_rad, 0_rad));
 } // namespace VisionConstants
