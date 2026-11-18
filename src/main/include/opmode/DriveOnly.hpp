@@ -17,7 +17,7 @@ private:
   Robot &robot;
 
   wpi::cmd::CommandGamepad m_driverController{
-      OperatorConstants::kDriverControllerPort};
+      OperatorConstants::DRIVER_CONTROLLER_PORT};
 
   // Drive control mode flags for holonomic drivetrains (like swerve)
   bool m_fieldOriented = true;
